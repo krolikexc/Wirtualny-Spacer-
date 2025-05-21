@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Wirtualny Spacer</title>
+  <style>
+    html, body {{ height: 100%; margin: 0; }}
+    #pano {{ width: 100%; height: 100%; }}
+    .hotspot {{ background-color: rgba(255,255,255,0.7); padding: 4px 8px; border-radius: 4px; }}
+  </style>
+  <script src="https://www.marzipano.net/demos/vendor/marzipano.js"></script>
+</head>
+<body>
+  <div id="pano"></div>
+  <script>
+    var panoElement = document.getElementById('pano');
+    var viewer = new Marzipano.Viewer(panoElement);
+
+    var scenes = {{
+      hall: createScene("images/hall.jpg", "Przedpokój", [
+        {{ yaw: 1.5, pitch: 0.1, text: "Idź do łazienki", target: "bathroom" }}
+      ]),
+      bathroom: createScene("images/bathroom.jpg", "Łazienka", [
+        {{ yaw: -1.5, pitch: 0.1, text: "Wróć do przedpokoju", target: "hall" }}
+      ])
+    }};
+
+    function createScene(imagePath, title, hotspots) {{
+      var source = Marzipano.ImageUrlSource.fromString(imagePath);
+      var geometry = new Marzipano.EquirectGeometry([{ width: 4000 }]);
+      var limiter = Marzipano.RectilinearView.limit.traditional(1024, 100*Math.PI/180);
+      var view = new Marzipano.RectilinearView(null, limiter);
+      var scene = viewer.createScene({{ source: source, geometry: geometry, view: view }});
+
+      hotspots.forEach(function(hotspot) {{
+        var element = document.createElement("div");
+        element.className = "hotspot";
+        element.innerText = hotspot.text;
+        element.addEventListener("click", function() {{
+          scenes[hotspot.target].switchTo();
+        }});
+        scene.hotspotContainer().createHotspot(element, {{ yaw: hotspot.yaw, pitch: hotspot.pitch }});
+      }});
+
+      return scene;
+    }}
+
+    scenes.hall.switchTo();
+  </script>
+</body>
+</html>
